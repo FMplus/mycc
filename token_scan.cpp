@@ -22,7 +22,7 @@ int token_scan(FILE *fp)
         {
             ch = getc(fp);
             if (feof(fp))
-                return -1;//file end return -1;
+                return 1;//file end return 1;
         }
         if (isalpha(ch))//get a keyword or id;  is a ~ Z;
         {
@@ -185,11 +185,11 @@ int token_scan(FILE *fp)
                 return (ID);break;//actually it is STRING
             default:
                 cout << "ERROR !" << endl;
-                return -2;
+                return 0;
                 break;
             }
         }
     }
-    return -1;
+    return 1;
 }
 #endif

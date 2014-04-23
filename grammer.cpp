@@ -23,6 +23,7 @@ int parser::do_parse()
         {
         case SHIFT:
         {
+            std::cout << "--->shift " << cctab[top][sym][1] << std::endl;
             products.push(sym);
             status.push(cctab[top][sym][1]);
             sym = getc();
@@ -32,6 +33,7 @@ int parser::do_parse()
         case REDUCE:
         {
             int l;
+            std::cout << "status " << cctab[top][sym][1] << std::endl;
             switch(cctab[top][sym][1])
             {
             case 0:
@@ -401,6 +403,7 @@ int parser::do_parse()
             }
             }
             top = status.top();
+            std::cout << "top:" << top << std::endl;
             status.push(cctab[top][l][1]);
             products.push(l);
             top = status.top();

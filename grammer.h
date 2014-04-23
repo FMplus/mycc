@@ -11,7 +11,7 @@
 class parser
 {
     public:
-        static const int cctab[495][47][2];
+        static const int cctab[386][49][2];
         FILE *fp;
         parser()
         {

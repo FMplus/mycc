@@ -11,50 +11,52 @@
 
 #if 1//symbols define
 
-#define  program    2
-#define  block      3
-#define  decls      4
-#define  decl       5
-#define  id         6
-#define  stmts      7
-#define  stmt       8
-#define  loc        9
-#define  expr       10
-#define  equality   11
-#define  rel        12
-#define  add        13
-#define  mult       14
-#define  unary      15
-#define  postfix    16
-#define  factor     17
-#define  BASIC      18  //int
-#define  LSB        19  // [
-#define  RSB        20  // ]
-#define  LB         21  // {
-#define  RB         22  // }
-#define  LBT        23  // (
-#define  RBT        24  // )
-#define  COMMA      25  // ,
-#define  SEM        26  // ;
-#define  PLUS       27  // +
-#define  MIN        28  // -
-#define  MULT       29  // *
-#define  DEV        30  // /
-#define  EQUAL      31  // =
-#define  UEQUAL     32  // !=
-#define  EXCLAMA    33  // !
-#define  ASS        34  // ==
-#define  INC        35  // ++
-#define  DEC        36  // --
-#define  GT         37  // >
-#define  GE         38  // >=
-#define  LT         39  // <
-#define  LE         40  // <=
-#define  ID         41  // id
-#define  NUM        42  // num
-#define  IF         43  // if
-#define  FOR        44  // for
-#define  WHILE      45  // while
-#define  ELSE       46  // else
+#define     program 2
+#define     block 3
+#define     decls 4
+#define     decl 5
+#define     id 6
+#define     stmts 7
+#define     stmt 8
+#define     loc 9
+#define     expr 10
+#define     volua 11
+#define     stmvol 12
+#define     equality 13
+#define     rel 14
+#define     add 15
+#define     mult 16
+#define     unary 17
+#define     postfix 18
+#define     factor 19
+#define     BASIC 20
+#define     LSB 21
+#define     RSB 22
+#define     LB 23
+#define     RB 24
+#define     LBT 25
+#define     RBT 26
+#define     COMMA 27
+#define     SEM 28
+#define     PLUS 29
+#define     MIN 30
+#define     MULT 31
+#define     DEV 32
+#define     EQUAL 33
+#define     UEQUAL 34
+#define     EXCLAMA 35
+#define     ASS 36
+#define     INC 37
+#define     DEC 38
+#define     GT 39
+#define     GE 40
+#define     LT 41
+#define     LE 42
+#define     ID 43
+#define     NUM 44
+#define     IF 45
+#define     FOR 46
+#define     WHILE 47
+#define     ELSE 48
 
 #endif // CHARACTER_TABLE_H_INCLUDED

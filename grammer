@@ -1,0 +1,54 @@
+#var program,block,decls,decl,id,stmts,stmt,loc,expr,volua,stmvol,
+equality,rel,add,mult,unary,postfix,factor;
+#term BASIC,LSB,RSB,LB,RB,LBT,RBT,COMMA,SEM,PLUS,MIN,MULT,DEV,EQUAL,
+UEQUAL,EXCLAMA,ASS,INC,DEC,GT,GE,LT,LE,ID,NUM,IF,FOR,WHILE,ELSE;
+
+!program = BASIC id LBT RBT block;
+!block   = LB decls stmts RB;
+!decls   = decls decl 
+         | %;
+!decl    = BASIC id SEM;
+!id      = volua COMMA id
+         | volua;
+!volua   = ID
+         | ID LSB NUM RSB
+         | ID LSB NUM RSB EQUAL LB expr RB
+         | ID EQUAL NUM;
+!stmts   = stmts stmt
+         | %;
+!stmt    = stmvol SEM
+         | IF LBT equality RBT stmt
+         | IF LBT equality RBT stmt ELSE stmt
+         | FOR LBT stmvol SEM expr SEM add RBT stmt
+         | WHILE LBT equality RBT stmt
+         | block;
+!stmvol  = loc EQUAL add
+         | postfix;
+!loc     = ID LSB add RSB
+         | ID;
+!expr    = expr COMMA equality
+	 | equality;
+!equality= equality ASS rel
+         | equality UEQUAL rel
+         | rel;
+!rel     = add LT add 
+         | add LE add 
+         | add GT add 
+         | add GE add
+	 | add;
+!add     = add PLUS mult
+         | add MIN mult
+         | mult;
+!mult    = mult MULT unary
+         | mult DEV unary
+         | unary;
+!unary   = EXCLAMA unary
+         | postfix;
+!postfix = postfix INC
+	 | postfix DEC
+	 | factor;
+!factor  = LBT equality RBT
+         | loc
+         | NUM;
+
+*program;

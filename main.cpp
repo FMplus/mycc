@@ -18,11 +18,11 @@ int main()
     {
         cout << "ok" << endl;
     }
-   /* int t = p -> getc();
+    /*int t = p -> getc();
     while (t != -1 && t != -2)
     {
         t = p -> getc();
-    }*/
-
+    }
+    delete p;*/
     return 0;
 }

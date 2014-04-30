@@ -10,9 +10,10 @@
 
 class parser
 {
-    public:
-        static const int cctab[386][49][2];
+    private:
+        static const int cctab[495][53][2];
         FILE *fp;
+    public:
         parser()
         {
             fp = fopen("test.c","r");
@@ -23,6 +24,28 @@ class parser
         }
         int getc();
         int do_parse();
+        /*void change()
+        {
+            std::cout << cctab[468][49][0] << std::endl;
+            cctab[468][49][0] = 1;
+            std::cout << cctab[468][49][0] << std::endl;
+            std::cout << cctab[468][49][1] << std::endl;
+            cctab[468][49][1] = 486;
+            std::cout << cctab[468][49][1] << std::endl;
+            for (int i = 0 ; i < 495; i++)
+            {
+                std::cout << "{" ;
+                for(int j = 0 ; j < 53 ; j++)
+                {
+                    if(j < 52)
+                        std:: cout << "{" << cctab[i][j][0] << "," << cctab[i][j][1] << "},";
+                    else
+                        std:: cout << "{" << cctab[i][j][0] << "," << cctab[i][j][1] << "}";
+                }
+                std:: cout << "}," << std::endl;
+            }
+        }*/
+
 };//class parser
 
 #endif // _GRAMMER_H

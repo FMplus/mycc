@@ -1,7 +1,8 @@
-#var program,block,decls,decl,id,stmts,stmt,loc,expr,volua,stmvol,
-equality,rel,add,mult,unary,postfix,factor;
-#term BASIC,LSB,RSB,LB,RB,LBT,RBT,COMMA,SEM,PLUS,MIN,MULT,DEV,EQUAL,
-UEQUAL,EXCLAMA,ASS,INC,DEC,GT,GE,LT,LE,ID,NUM,IF,FOR,WHILE,ELSE;
+#var 
+program,block,decls,decl,id,stmts,stmt,loc,expr,volua,stmvol,
+equality,rel,add,mult,unary,postfix,factor,paramer;
+#term BASIC,LSB,RSB,LB,RB,LBT,RBT,COMMA,SEM,PLUS,MIN,MULT,DEV,EQUAL,UEQUAL,
+EXCLAMA,ASS,INC,DEC,GT,GE,LT,LE,ID,NUM,IF,FOR,WHILE,ELSE,PRINTF,STR,RETURN;
 
 !program = BASIC id LBT RBT block;
 !block   = LB decls stmts RB;
@@ -21,7 +22,11 @@ UEQUAL,EXCLAMA,ASS,INC,DEC,GT,GE,LT,LE,ID,NUM,IF,FOR,WHILE,ELSE;
          | IF LBT equality RBT stmt ELSE stmt
          | FOR LBT stmvol SEM expr SEM add RBT stmt
          | WHILE LBT equality RBT stmt
+         | PRINTF LBT STR paramer RBT SEM
+         | RETURN equality SEM
          | block;
+!paramer = paramer COMMA add
+         | %;
 !stmvol  = loc EQUAL add
          | postfix;
 !loc     = ID LSB add RSB

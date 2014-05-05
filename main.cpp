@@ -13,13 +13,14 @@ using namespace std;
 int main()
 {
     parser *p = new parser;
+    //p -> change();
     int t = p->do_parse();
     if ( t == 0)
     {
         cout << "ok" << endl;
     }
     /*int t = p -> getc();
-    while (t != -1 && t != -2)
+    while (t != 1 && t != 0)
     {
         t = p -> getc();
     }

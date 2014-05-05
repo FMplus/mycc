@@ -40,7 +40,8 @@ int token_scan(FILE *fp)
             else if (strcmp("int",buffer)==0)return (BASIC);
             else if (strcmp("for",buffer)==0)return (FOR);
             else if (strcmp("while",buffer)==0)return (WHILE);
-            //else if (strcmp("return",buffer)==0)return (RETURN);
+            else if (strcmp("printf",buffer)==0)return (PRINTF);
+            else if (strcmp("return",buffer)==0)return (RETURN);
             else return ID;
         }
         else if (isdigit(ch))//is 0~9;
@@ -179,10 +180,11 @@ int token_scan(FILE *fp)
                 while (ch != '"')
                 {
                     buffer[i] = ch;
+                    ch = getc(fp);
                     i++;
                 }
                 buffer[i] = '\0';
-                return (ID);break;//actually it is STRING
+                return (STR);break;//actually it is STRING
             default:
                 cout << "ERROR !" << endl;
                 return 0;

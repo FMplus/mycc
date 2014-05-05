@@ -10,53 +10,61 @@
 #include <ctype.h>
 
 #if 1//symbols define
-
-#define     program      2
-#define     block        3
-#define     decls        4
-#define     decl         5
-#define     id           6
-#define     stmts        7
-#define     stmt         8
-#define     loc          9
-#define     expr         10
-#define     volua        11
-#define     stmvol       12
-#define     equality     13
-#define     rel          14
-#define     add          15
-#define     mult         16
-#define     unary        17
-#define     postfix      18
-#define     factor       19
-#define     BASIC        20
-#define     LSB          21
-#define     RSB          22
-#define     LB           23
-#define     RB           24
-#define     LBT          25
-#define     RBT          26
-#define     COMMA        27
-#define     SEM          28
-#define     PLUS         29
-#define     MIN          30
-#define     MULT         31
-#define     DEV          32
-#define     EQUAL        33
-#define     UEQUAL       34
-#define     EXCLAMA      35
-#define     ASS          36
-#define     INC          37
-#define     DEC          38
-#define     GT           39
-#define     GE           40
-#define     LT           41
-#define     LE           42
-#define     ID           43
-#define     NUM          44
-#define     IF           45
-#define     FOR          46
-#define     WHILE        47
-#define     ELSE         48
+//symbol of val
+#define    program      2
+#define    block        3
+#define    decls        4
+#define    decl         5
+#define    id           6
+#define    stmts        7
+#define    stmt         8
+#define    loc          9
+#define    expr         10
+#define    volua        11
+#define    stmvol       12
+#define    equality     13
+#define    rel          14
+#define    add          15
+#define    mult         16
+#define    unary        17
+#define    postfix      18
+#define    factor       19
+#define    paramer      20
+//symbol of term
+//sign
+#define    BASIC        21  // int (basic type)
+#define    LSB          22  // [
+#define    RSB          23  // ]
+#define    LB           24  // {
+#define    RB           25  // }
+#define    LBT          26  // (
+#define    RBT          27  // )
+#define    COMMA        28  // ,
+#define    SEM          29  // ;
+#define    PLUS         30  // +
+#define    MIN          31  // -
+#define    MULT         32  // *
+#define    DEV          33  // /
+#define    EQUAL        34  // =
+#define    UEQUAL       35  // !=
+#define    EXCLAMA      36  // !
+#define    ASS          37  // ==
+#define    INC          38  // ++
+#define    DEC          39  // --
+#define    GT           40  // >
+#define    GE           41  // >=
+#define    LT           42  // <
+#define    LE           43  // <=
+//value
+#define    ID           44  // id
+#define    NUM          45  // num
+//key words
+#define    IF           46  // if
+#define    FOR          47  // for
+#define    WHILE        48  // while
+#define    ELSE         49  // else
+#define    PRINTF       50  // printf
+#define    STR          51  // str
+#define    RETURN       52  // return
 
 #endif // CHARACTER_TABLE_H_INCLUDED

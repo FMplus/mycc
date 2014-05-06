@@ -1,5 +1,53 @@
 #include "grammer.h"
 
+std::string parser::transdef(int l)
+{
+    switch(l)
+    {
+        case 2:
+            return "program";
+        case 3:
+            return "block";
+        case 4:
+            return "decls";
+        case 5:
+            return "decl";
+        case 6:
+            return "id";
+        case 7:
+            return "stmts";
+        case 8:
+            return "stmt";
+        case 9:
+            return "loc";
+        case 10:
+            return "expr";
+        case 11:
+            return "volua";
+        case 12:
+            return "stmvol";
+        case 13:
+            return "equality";
+        case 14:
+            return "rel";
+        case 15:
+            return "add";
+        case 16:
+            return "mult";
+        case 17:
+            return "unary";
+        case 18:
+            return "postfix";
+        case 19:
+            return "factor";
+        case 20:
+            return "paramer";
+        default:
+            std::cout << "error: not have this val!" << std::endl;
+            exit(1);
+    }
+}
+
 int parser::getc()
 {
     #if 1
@@ -11,10 +59,12 @@ int parser::getc()
 int parser::do_parse()
 {
     std::stack<int> status;
-    std::stack<int> products;
+    std::stack<string> products;
+    std::stack<node> nodelist;
+    string str;
     int sym,top;
     status.push(0);//push the start status
-    products.push(1);//push the end symbols
+    products.push("\0");//push the end symbols
     top = status.top();
     sym = getc();
     while(true)
@@ -23,8 +73,7 @@ int parser::do_parse()
         {
         case SHIFT:
         {
-            std::cout << "--->shift " << cctab[top][sym][1] << std::endl;
-            products.push(sym);
+            products.push(buffer);
             status.push(cctab[top][sym][1]);
             sym = getc();
             top = status.top();
@@ -381,7 +430,7 @@ int parser::do_parse()
         }
         top = status.top();
         status.push(cctab[top][l][1]);
-        products.push(l);
+        products.push(transdef(l));
         top = status.top();
         break;
         }

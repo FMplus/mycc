@@ -11,6 +11,7 @@ struct STable
     int sign;//符号种类
     int type;//类型
     int add;//地址
+    int size;
     struct STable *next;//扩展属性地址
 };
 
@@ -23,7 +24,7 @@ class SymbolTable
         void begin();
        // void end();
         int comp_add(char* name);//计算符号在符号表的位置
-        void insert_s(char* name,int sign,int type);//在符号表中插入一个符号
+        void insert_s(char* name,int sign,int type,int size);//在符号表中插入一个符号
        // void dele_s();//删除符号表中的一个符号
         int get_offset();
         bool find_s(char *name);//是否存在该符号
@@ -110,7 +111,7 @@ int SymbolTable::get_offset()
     return offset;
 }
 
-void SymbolTable::insert_s(char* name,int sign,int type)
+void SymbolTable::insert_s(char* name,int sign,int type,int size)
 {
     if (find_s(name)==true)
     {
@@ -128,7 +129,9 @@ void SymbolTable::insert_s(char* name,int sign,int type)
         ST[place] -> name = name;
         ST[place] -> sign = sign;
         ST[place] -> type = type;
-        ST[place] -> add  = offset + sizeof(type);
+        ST[place] -> add  = offset;
+        offset = offset + sizeof(int)*size;
+        ST[place] -> size = size;
         ST[place] -> next = NULL;
     }
     else
@@ -142,7 +145,9 @@ void SymbolTable::insert_s(char* name,int sign,int type)
         p -> name = name;
         p -> sign = sign;
         p -> type = type;
-        p -> add  = offset + sizeof(type);
+        p -> add  = offset;
+        offset = offset + sizeof(int)*size;
+        p -> size = size;
         p -> next = NULL;
         tmp -> next = p;
     }

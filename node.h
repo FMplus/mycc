@@ -16,6 +16,6 @@ struct node
     bool isREGID;
 };
 
-extern   stack<node> nodelist;
+extern std::stack<node> nodelist;
 
 #endif

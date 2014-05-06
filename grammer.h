@@ -1,7 +1,10 @@
 #ifndef _GRAMMER_H
 #define _GRAMMER_H
 
-#include<stack>
+#include <stack>
+#include <string>
+#include <string.h>
+#include "node.h"
 #include "Character_table.h"
 #include "token_scan.h"
 #define  REDUCE     0
@@ -14,6 +17,7 @@ class parser
         static const int cctab[495][53][2];
         FILE *fp;
     public:
+        typedef std::string string;
         parser()
         {
             fp = fopen("test.c","r");
@@ -24,6 +28,7 @@ class parser
         }
         int getc();
         int do_parse();
+        std::string transdef(int l);
         /*void change()
         {
             std::cout << cctab[468][49][0] << std::endl;

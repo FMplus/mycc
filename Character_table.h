@@ -1,3 +1,5 @@
+//#ifndef _CHARACTER_TABLE_H
+//#define _CHARACTER_TABLE_H
 #include <stdio.h>
 #include <iostream>
 #include <stdlib.h>
@@ -68,3 +70,5 @@
 #define    RETURN       52  // return
 
 #endif // CHARACTER_TABLE_H_INCLUDED
+
+

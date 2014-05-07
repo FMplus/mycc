@@ -40,10 +40,8 @@ SymbolTable::SymbolTable()
     offset = 0;
     for (int i = 0; i < BUCKETS; i++)
     {
-        //std::cout << i << " " ;
         ST[i] = NULL;
     }
-    //std::cout << std::endl;
 }
 
 void SymbolTable::begin()
@@ -191,13 +189,13 @@ STable* SymbolTable::search_s(std::string name)
 
 void SymbolTable::show_st()
 {
-    std::cout << "i: " << " name   |" << "sign   |" << "type   |" << "add   |"<< std::endl;
+    std::cout << "i: " << " name\t" << "sign\t" << "type\t" << "add\t" << "size\t" << std::endl;
     for(int i = 0; i < BUCKETS; i++)
     {
         STable* tmp = ST[i];
         while (tmp != NULL)
         {
-            std::cout << i << ": " << tmp -> name << " " << tmp -> sign << " " << tmp -> type << " " << tmp -> addr << std::endl;
+            std::cout << i << ": " << tmp -> name << "     \t" << tmp -> sign << "\t" << tmp -> type << "\t" << tmp -> addr << "\t"  << tmp -> s << std::endl;
             tmp = tmp -> next;
         }
     }

@@ -7,11 +7,11 @@
 
 struct STable
 {
-    char* name;//名字
-    int sign;//符号种类
-    int type;//类型
-    int add;//地址
-    int size;
+    std::string name;//名字
+    int sign;//符号种类 val -> 0 array -> 1
+    std::string type;//类型 int
+    int addr;//地址
+    int s;
     struct STable *next;//扩展属性地址
 };
 
@@ -20,15 +20,15 @@ class SymbolTable
     public:
         SymbolTable();
         //SymbolTable(int set);
-        ~SymbolTable();
+        ~SymbolTable(){};
         void begin();
        // void end();
-        int comp_add(char* name);//计算符号在符号表的位置
-        void insert_s(char* name,int sign,int type,int size);//在符号表中插入一个符号
+        int comp_add(std::string name);//计算符号在符号表的位置
+        void insert_s(std::string name,int sign,std::string tp,int s);//在符号表中插入一个符号
        // void dele_s();//删除符号表中的一个符号
         int get_offset();
-        bool find_s(char *name);//是否存在该符号
-        STable* search_s(char *name);//找到了则返回符号信息
+        bool find_s(std::string name);//是否存在该符号
+        STable* search_s(std::string name);//找到了则返回符号信息
         void show_st();//展示符号表
     private:
         STable *ST[BUCKETS];
@@ -40,15 +40,23 @@ SymbolTable::SymbolTable()
     offset = 0;
     for (int i = 0; i < BUCKETS; i++)
     {
-        std::cout << i << " " ;
+        //std::cout << i << " " ;
         ST[i] = NULL;
     }
-    std::cout << std::endl;
+    //std::cout << std::endl;
 }
 
-SymbolTable::~SymbolTable()
+void SymbolTable::begin()
 {
-    //std::cout << "delete" << std::endl;
+    offset = 0;
+    for (int i = 0; i < BUCKETS; i++)
+    {
+        ST[i] = NULL;
+    }
+}
+
+/*SymbolTable::~SymbolTable()
+{
     for(int i = 0; i < BUCKETS; i++)
     {
         STable *tmp = ST[i];
@@ -61,7 +69,7 @@ SymbolTable::~SymbolTable()
             }
         }
     }
-}
+}*/
 
 /*void SymbolTable::end()
 {
@@ -84,17 +92,6 @@ SymbolTable::~SymbolTable()
     }
 }*/
 
-void SymbolTable::begin()
-{
-    offset = 0;
-    for (int i = 0; i < BUCKETS; i++)
-    {
-        std::cout << i << " " ;
-        ST[i] = NULL;
-    }
-    std::cout << std::endl;
-}
-
 /*SymbolTable::SymbolTable(int set)
 {
     offset = set;
@@ -111,27 +108,23 @@ int SymbolTable::get_offset()
     return offset;
 }
 
-void SymbolTable::insert_s(char* name,int sign,int type,int size)
+void SymbolTable::insert_s(std::string name,int sign,std::string tp,int s)
 {
     if (find_s(name)==true)
     {
         std::cout << "error:rename" << std::endl;
         return;
     }
-    std::cout << name << std::endl;
-    int place;
-    //std::cout << "comp_add: " << comp_add(name) << std::endl;
-    place = comp_add(name);
-
+    int place = comp_add(name);
     if (ST[place] == NULL)
     {
         ST[place] = new STable;
         ST[place] -> name = name;
         ST[place] -> sign = sign;
-        ST[place] -> type = type;
-        ST[place] -> add  = offset;
-        offset = offset + sizeof(int)*size;
-        ST[place] -> size = size;
+        ST[place] -> type = tp;
+        ST[place] -> addr = offset;
+        offset   = offset + (sizeof(int)*s);
+        ST[place] -> s    = s;
         ST[place] -> next = NULL;
     }
     else
@@ -144,36 +137,31 @@ void SymbolTable::insert_s(char* name,int sign,int type,int size)
         STable *p = new STable;
         p -> name = name;
         p -> sign = sign;
-        p -> type = type;
-        p -> add  = offset;
-        offset = offset + sizeof(int)*size;
-        p -> size = size;
+        p -> type = tp;
+        p -> addr = offset;
+        offset    = offset + sizeof(int)*s;
+        p -> s    = s;
         p -> next = NULL;
         tmp -> next = p;
     }
 }
 
-int SymbolTable::comp_add(char* name)
+int SymbolTable::comp_add(std::string name)
 {
     //int snum = atoi((const char*)name);
-    int snum = 0,i=0;
+    int snum = 0, i = 0;
     while(name[i] != '\0')
     {
         snum = snum + (name[i] - 0);
         i++;
     }
-    //std::cout << "snum: " << name[0] << std::endl;
-    int res = snum%BUCKETS ;
-    //std::cout << "res: " << res << std::endl;
-    return res;
+    return snum%BUCKETS;
 }
 
-bool SymbolTable::find_s(char *name)
+bool SymbolTable::find_s(std::string name)
 {
     int place = comp_add(name);
-    //std::cout << "place: "  << place << std::endl;
     STable *tmp = ST[place];
-    //std::cout << "NULL" << std::endl;
     while (tmp != NULL)
     {
         if ((tmp -> name) == name)
@@ -185,7 +173,7 @@ bool SymbolTable::find_s(char *name)
     return false;
 }
 
-STable* SymbolTable::search_s(char* name)
+STable* SymbolTable::search_s(std::string name)
 {
     int place = comp_add(name);
     STable *tmp = ST[place];
@@ -197,6 +185,7 @@ STable* SymbolTable::search_s(char* name)
         }
         tmp = tmp -> next;
     }
+    std::cout << "error:not search it!" << std::endl;
     return NULL;
 }
 
@@ -208,7 +197,7 @@ void SymbolTable::show_st()
         STable* tmp = ST[i];
         while (tmp != NULL)
         {
-            std::cout << i << ": " << tmp -> name << " " << tmp -> sign << " " << tmp -> type << " " << tmp -> add << std::endl;
+            std::cout << i << ": " << tmp -> name << " " << tmp -> sign << " " << tmp -> type << " " << tmp -> addr << std::endl;
             tmp = tmp -> next;
         }
     }

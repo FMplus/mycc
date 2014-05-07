@@ -1,4 +1,5 @@
 #include "grammer.h"
+#include "signtable.h"
 
 std::string parser::transdef(int l)
 {
@@ -61,7 +62,12 @@ int parser::do_parse()
     std::stack<int> status;
     std::stack<string> products;
     std::stack<node> nodelist;
-    string str;
+    std::stack<string> strlist;
+    SymbolTable* table;table->begin();
+    node nodetmp;
+    node nodetmp1,nodetmp2,nodetmp3,nodetmp4;
+    string str,str1,str2;
+    int arraysize = 0;
     int sym,top;
     status.push(0);//push the start status
     products.push("\0");//push the end symbols
@@ -83,6 +89,8 @@ int parser::do_parse()
         int l;
         switch(cctab[top][sym][1]){
         case 0:{//accept
+            //nodetmp = nodelist.top();
+            //std::cout << nodetmp.code << std::endl;
             return 0;
             break;
         }
@@ -114,53 +122,71 @@ int parser::do_parse()
             break;
         }
         case 5:{//decl=>BASIC id SEM
-            products.pop();status.pop();
-            products.pop();status.pop();
-            products.pop();status.pop();
+            products.pop();status.pop();//SEM
+            products.pop();status.pop();//id
+            products.pop();status.pop();//BASIC
             l = 5 ;
             break;
         }
         case 6:{//id=>volua COMMA id
-            products.pop();status.pop();
-            products.pop();status.pop();
-            products.pop();status.pop();
+            products.pop();status.pop();//id
+            products.pop();status.pop();//comma
+            products.pop();status.pop();//volua
             l = 6 ;
             break;
         }
         case 7:{//id=>volua
-            products.pop();status.pop();
+            products.pop();status.pop();//volua
             l = 6 ;
             break;
         }
         case 8:{//volua=>ID
-            products.pop();status.pop();
+            //table->insert_s(products.top(),0,"int",1);
+            //nodetmp.code = "";nodetmp.res = products.top();
+            //nodetmp.isID = true;nodetmp.isNUM = false; nodetmp.isREG = false;nodetmp.isREGID = false;
+            products.pop();status.pop();//ID
+            //nodelist.push(nodetmp);
             l = 11 ;
             break;
         }
         case 9:{//volua=>ID LSB NUM RSB
-            products.pop();status.pop();
-            products.pop();status.pop();
-            products.pop();status.pop();
-            products.pop();status.pop();
+            products.pop();status.pop();//RSB
+            //arraysize = atoi(products.top().c_str());
+            products.pop();status.pop();//NUM
+            products.pop();status.pop();//LSB
+            //table->insert_s(products.top(),1,"int",arraysize);//array
+            //arraysize = 0;
+            //nodetmp.code = "";nodetmp.res = products.top();
+            //nodetmp.isID = true;nodetmp.isNUM = false; nodetmp.isREG = false;nodetmp.isREGID = false;
+            products.pop();status.pop();//ID
+            //nodelist.push(nodetmp);
             l = 11 ;
             break;
         }
         case 10:{//volua=>ID LSB NUM RSB EQUAL LB expr RB
-            products.pop();status.pop();
-            products.pop();status.pop();
-            products.pop();status.pop();
-            products.pop();status.pop();
-            products.pop();status.pop();
-            products.pop();status.pop();
-            products.pop();status.pop();
-            products.pop();status.pop();
+            products.pop();status.pop();//RB
+            //nodetmp1 = nodelist.top();
+            products.pop();status.pop();//expr
+            products.pop();status.pop();//LB
+            products.pop();status.pop();//=
+            products.pop();status.pop();//]
+            products.pop();status.pop();//num
+            products.pop();status.pop();//[
+            products.pop();status.pop();//ID
             l = 11 ;
             break;
         }
         case 11:{//volua=>ID EQUAL NUM
-            products.pop();status.pop();
-            products.pop();status.pop();
-            products.pop();status.pop();
+            //nodetmp1.res = products.top();//nodetmp1.code = "";
+            //nodetmp1.isID = false;nodetmp1.isNUM = true;nodetmp1.isREG = false;nodetmp1 = false;
+            products.pop();status.pop();//NUM
+            products.pop();status.pop();//=
+            //nodetmp2.res = products.top();//nodetmp2.code = "";
+            //nodetmp2.isID = true;nodetmp2.isNUM = false;nodetmp2.isREG = false;nodetmp2 = false;
+            products.pop();status.pop();//ID
+            //nodetmp.code = "mov  ["+ nodetmp2.res + "] , $"+ nodetmp1.res +"\0\n";
+            //nodetmp2.isID = true;nodetmp2.isNUM = false;nodetmp2.isREG = false;nodetmp2.isREGID= false;
+            //nodelist.push(nodetmp);
             l = 11 ;
             break;
         }
@@ -276,6 +302,11 @@ int parser::do_parse()
             break;
         }
         case 27:{//loc=>ID
+            //nodetmp.code = "";
+            //nodetmp.res = products.top();
+            //nodetmp.isID = true;nodetmp.isNUM = false;
+            //nodetmp.isREG = false;nodetmp.isREGID = false;
+            //nodelist.push(nodetmp);
             products.pop();status.pop();
             l = 9 ;
             break;
@@ -423,6 +454,11 @@ int parser::do_parse()
             break;
         }
         case 51:{//factor=>NUM
+            //nodetmp.code = "";
+            //nodetmp.res = products.top();
+            //nodetmp.isID = false;nodetmp.isNUM = true;
+            //nodetmp.isREG = false;nodetmp.isREGID = false;
+            //nodelist.push(nodetmp);
             products.pop();status.pop();
             l = 19 ;
             break;

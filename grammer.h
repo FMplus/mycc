@@ -4,6 +4,7 @@
 #include <stack>
 #include <string>
 #include <string.h>
+#include <stdlib.h>
 #include "node.h"
 #include "Character_table.h"
 #include "token_scan.h"
@@ -20,7 +21,7 @@ class parser
         typedef std::string string;
         parser()
         {
-            fp = fopen("test.c","r");
+            fp = fopen("a.c","r");
         }
         ~parser()
         {

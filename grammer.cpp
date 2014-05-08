@@ -214,7 +214,7 @@ int parser::do_parse()
                     ss << (arraysize - i - 1)*sizeof(int);
                     ss >> str3;
                     ss.clear();
-                    str2 = "mov  ["+ str1 + "+" + str3 + "] , $" + nodetmp.res + "\n\0";
+                    str2 = "mov  ["+ str1 + "+" + str3 + "] , " + nodetmp.res + "\n\0";
                 }
                 else
                 {
@@ -236,7 +236,7 @@ int parser::do_parse()
             products.pop();status.pop();//=
             nodetmp2.res = products.top();
             products.pop();status.pop();//ID
-            nodetmp.code = "mov  ["+ nodetmp2.res + "] , $"+ nodetmp1.res +"\n\0";
+            nodetmp.code = "mov  ["+ nodetmp2.res + "] , "+ nodetmp1.res +"\n\0";
             nodetmp2.isID = true;nodetmp2.isNUM = false;nodetmp2.isREG = false;nodetmp2.isREGID= false;
             nodelist.push(nodetmp);
             table.insert_s(nodetmp2.res,0,"int",1);
@@ -352,7 +352,7 @@ int parser::do_parse()
             nodetmp2 = nodelist.top();nodelist.pop();
             products.pop();status.pop();//loc
             str = nodetmp1.code;
-            if (nodetmp1.isNUM)
+            if (nodetmp1.isNUM)//还没有判nodetmp2的类型
             {
                 nodetmp.code = str + "mov  " + nodetmp2.res + " , " + nodetmp1.res + "\n\0";
             }
@@ -361,6 +361,10 @@ int parser::do_parse()
                 nodetmp.code = str + "mov  " + nodetmp2.res + " , " + nodetmp1.res + "\n\0";
             }
             else if (nodetmp1.isID)
+            {
+                nodetmp.code = str + "mov  " + nodetmp2.res + " , [" + nodetmp1.res + "] \n\0";
+            }
+            else if (nodetmp1.isREGID)
             {
                 nodetmp.code = str + "mov  " + nodetmp2.res + " , [" + nodetmp1.res + "] \n\0";
             }
@@ -409,9 +413,9 @@ int parser::do_parse()
             break;
         }
         case 28:{//expr=>expr COMMA equality
+            products.pop();status.pop();//equality
             products.pop();status.pop();
-            products.pop();status.pop();
-            products.pop();status.pop();
+            products.pop();status.pop();//expr
             l = 10 ;
             break;
         }
@@ -421,9 +425,9 @@ int parser::do_parse()
             break;
         }
         case 30:{//equality=>equality ASS rel
-            products.pop();status.pop();
-            products.pop();status.pop();
-            products.pop();status.pop();
+            products.pop();status.pop();//rel
+            products.pop();status.pop();//==
+            products.pop();status.pop();//equality
             l = 13 ;
             break;
         }
@@ -499,9 +503,46 @@ int parser::do_parse()
             break;
         }
         case 42:{//mult=>mult DEV unary
+            nodetmp1 = nodelist.top();nodelist.pop();
+            products.pop();status.pop();//unary
             products.pop();status.pop();
-            products.pop();status.pop();
-            products.pop();status.pop();
+            nodetmp2 = nodelist.top();nodelist.pop();
+            products.pop();status.pop();//mult
+            str = "";
+            if (nodetmp1.isID == true && nodetmp2.isID == true)
+            {
+                str1 = "mov  eax , [" + nodetmp2.res + "] \n\0";
+                str2 = "div  [" + nodetmp1.res + "] \n\0";
+                str = str1 + str2;
+                nodetmp.res = "eax";
+                nodetmp.isREG = true;nodetmp.isID = false;nodetmp.isNUM = false;nodetmp.isREGID = false;
+            }
+            else if (nodetmp1.isID == true && nodetmp2.isNUM == true)
+            {
+                str1 = "mov  eax , " + nodetmp2.res + " \n\0";
+                str2 = "div  [" + nodetmp1.res + "] \n\0";
+                str = str1 + str2;
+                nodetmp.res = "eax";
+                nodetmp.isREG = true;nodetmp.isID = false;nodetmp.isNUM = false;nodetmp.isREGID = false;
+            }
+            else if (nodetmp1.isNUM == true && nodetmp2.isID == true)
+            {
+                str1 = "mov  eax , [" + nodetmp2.res + "] \n\0";
+                str2 = "div  " + nodetmp1.res + " \n\0";
+                str = str1 + str2;
+                nodetmp.res = "eax";
+                nodetmp.isREG = true;nodetmp.isID = false;nodetmp.isNUM = false;nodetmp.isREGID = false;
+            }
+            else if (nodetmp1.isNUM == true && nodetmp2.isNUM == true)
+            {
+                str1 = "mov  eax , " + nodetmp2.res + " \n\0";
+                str2 = "div  " + nodetmp1.res + " \n\0";
+                str = str1 + str2;
+                nodetmp.res = "eax";
+                nodetmp.isREG = true;nodetmp.isID = false;nodetmp.isNUM = false;nodetmp.isREGID = false;
+            }
+            nodetmp.code = str;
+            nodelist.push(nodetmp);
             l = 16 ;
             break;
         }

@@ -15,7 +15,7 @@
 class parser
 {
     private:
-        static const int cctab[495][53][2];
+        static const int cctab[482][53][2];
         FILE *fp;
     public:
         typedef std::string string;
@@ -32,13 +32,13 @@ class parser
         std::string transdef(int l);
         /*void change()
         {
-            std::cout << cctab[468][49][0] << std::endl;
-            cctab[468][49][0] = 1;
-            std::cout << cctab[468][49][0] << std::endl;
-            std::cout << cctab[468][49][1] << std::endl;
-            cctab[468][49][1] = 486;
-            std::cout << cctab[468][49][1] << std::endl;
-            for (int i = 0 ; i < 495; i++)
+            std::cout << cctab[416][49][0] << std::endl;
+            cctab[416][49][0] = 1;
+            std::cout << cctab[416][49][0] << std::endl;
+            std::cout << cctab[416][49][1] << std::endl;
+            cctab[416][49][1] = 456;
+            std::cout << cctab[416][49][1] << std::endl;
+            for (int i = 0 ; i < 482; i++)
             {
                 std::cout << "{" ;
                 for(int j = 0 ; j < 53 ; j++)

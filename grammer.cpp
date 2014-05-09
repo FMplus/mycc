@@ -58,7 +58,7 @@ int parser::getc()
 {
     #if 1
     int t = token_scan(fp);
-    std::cout << t << "  " << buffer << std::endl;
+    //std::cout << t << "  " << buffer << std::endl;
     return t;
     #endif
 }
@@ -94,10 +94,10 @@ int parser::do_parse()
         }
         case REDUCE:{
         int l;
-        std::cout << "case: " << cctab[top][sym][1] << std::endl;
+        //std::cout << "case: " << cctab[top][sym][1] << std::endl;
         switch(cctab[top][sym][1]){
         case 0:{//accept
-            std::cout << "accept!" << std::endl;
+            //std::cout << "accept!" << std::endl;
             nodetmp = nodelist.top();
             std::cout << table.get_decl_code();
             std::cout << ".text\n"
@@ -398,9 +398,19 @@ int parser::do_parse()
             products.pop();status.pop();//(
             products.pop();status.pop();//PRINTF
             l1 = label_id ++;
-            str = nodetmp1.code
-                + "pushl $ \"" + nodetmp2.res + "\" \n"
-                + "call printf\n";
+            l2 = label_id++;
+            ss << l1;ss >> str1;ss.clear();
+            ss << l2;ss >> str2;ss.clear();
+            str =
+                 "jmp "+LABEL_NAME_PREFIX + str2 + "\n"
+                + LABEL_NAME_PREFIX + str1 + ":\n"
+                + ".string \""+ nodetmp2.res+"\"\n"
+                +  LABEL_NAME_PREFIX + str2 + ":\n"
+                + "movl %esp,%ebp\n"
+                + nodetmp1.code
+                + "pushl $" +  LABEL_NAME_PREFIX + str1  + " \n"
+                + "call printf\n"
+                + "movl %ebp,%esp\n";
             nodetmp.code = str;
             nodelist.push(nodetmp);
             l = 8 ;
@@ -408,14 +418,8 @@ int parser::do_parse()
         }
         case 20:{//stmt=>RETURN equality SEM
             products.pop();status.pop();//;
-            nodetmp1 = nodelist.top();nodelist.pop();
             products.pop();status.pop();//equality
             products.pop();status.pop();//RETURN
-            str = nodetmp1.code
-                + "leave \n"
-                + "ret\n";
-            nodetmp.code = str;
-            nodelist.push(nodetmp);
             l = 8 ;
             break;
         }
@@ -450,10 +454,11 @@ int parser::do_parse()
             products.pop();status.pop();//=
             nodetmp2 = nodelist.top();nodelist.pop();
             products.pop();status.pop();//loc
-            str = nodetmp2.code
+            str = nodetmp1.code
                 + "pushl %eax\n"
-                + nodetmp1.code
-                + "movl  %eax,(%esp)\n"
+                + nodetmp2.code
+                + "movl (%esp),%eax\n"
+                + "movl %eax,(%ebx)\n"
                 + "addl  $4,%esp\n";
             nodetmp.code = str;
             nodelist.push(nodetmp);
@@ -479,7 +484,7 @@ int parser::do_parse()
             }
             nodetmp.code =    nodetmp1.code
                             + "movl $" + nodetmp2.res + ",%ebx\n"
-                            + "addl %eax,%ebx\n"
+                            + "leal (%ebx,%eax,4),%ebx\n"
                             + "movl (%ebx),%eax\n";
             nodelist.push(nodetmp);
             l = 9 ;
@@ -492,7 +497,8 @@ int parser::do_parse()
                 std::cout << "error 27: not define " + nodetmp.res << std::endl;
                 exit(1);
             }
-            nodetmp.code = "movl $" + nodetmp.res + ",%eax\n";
+            nodetmp.code = "movl $" + nodetmp.res + ",%ebx\n"
+                            +"movl "+nodetmp.res + ",%eax\n";
             products.pop();status.pop();
             nodelist.push(nodetmp);
             l = 9 ;
@@ -641,7 +647,7 @@ int parser::do_parse()
             str = nodetmp2.code
                 + "pushl %eax\n"
                 + nodetmp1.code
-                + "addl %eax,(%esp)\n"
+                + "addl (%esp),%eax\n"
                 + "addl $4,%esp\n";
             nodetmp.code = str;
             nodelist.push(nodetmp);
@@ -654,10 +660,10 @@ int parser::do_parse()
             products.pop();status.pop();//-
             nodetmp2 = nodelist.top();nodelist.pop();
             products.pop();status.pop();//add
-            str = nodetmp2.code
+            str = nodetmp1.code
                 + "pushl %eax\n"
-                + nodetmp1.code
-                + "subl %eax,(%esp)\n"
+                + nodetmp2.code
+                + "subl (%esp),%eax\n"
                 + "addl $4,%esp\n";
             nodetmp.code = str;
             nodelist.push(nodetmp);
@@ -678,7 +684,7 @@ int parser::do_parse()
             str = nodetmp2.code
                 + "pushl %eax\n"
                 + nodetmp1.code
-                + "mull %eax,(%esp)\n"
+                + "mull (%esp)\n"
                 + "addl $4,%esp\n";
             nodetmp.code = str;
             nodelist.push(nodetmp);
@@ -691,10 +697,11 @@ int parser::do_parse()
             products.pop();status.pop();
             nodetmp2 = nodelist.top();nodelist.pop();
             products.pop();status.pop();//mult
-            str =   nodetmp2.code
+            str =   nodetmp1.code
                   + "pushl %eax\n"
-                  + nodetmp1.code
-                  + "divl %eax,(%esp)\n"
+                  + nodetmp2.code
+                  + "movl $0,%edx\n"
+                  + "divl (%esp)\n"
                   + "addl $4,%esp\n";
 
             nodetmp.code = str;

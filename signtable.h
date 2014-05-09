@@ -4,6 +4,9 @@
 #define BUCKETS 109
 #include <stdlib.h>
 #include <iostream>
+#include <stack>
+#include <sstream>
+
 
 struct STable
 {
@@ -29,22 +32,37 @@ class SymbolTable
         int get_offset();
         bool find_s(std::string name);//是否存在该符号
         STable* search_s(std::string name);//找到了则返回符号信息
+        std::stack<STable*> search_type(int sign);
         void show_st();//展示符号表
+        std::string get_decl_code()
+        {
+                std::stringstream code;
+                code<<".data\n";
+                    for(int i = 0; i < BUCKETS; i++)
+                    {
+                        STable* tmp = ST[i];
+                        while (tmp != NULL)
+                        {
+                            //if(tmp -> ){
+                                    code << tmp -> name << ":\n"
+                                         << "."<<tmp -> type << " " ;
+
+                                    for(int i = 0 ; i < tmp -> s - 1;i++){
+                                        code << "0,";
+                                    }
+                                    code << "0" << std::endl;
+                            //}
+                            tmp = tmp -> next;
+                        }
+                    }
+                return code.str();
+        }
     private:
         STable *ST[BUCKETS];
         int offset;
 };
 
 SymbolTable::SymbolTable()
-{
-    offset = 0;
-    for (int i = 0; i < BUCKETS; i++)
-    {
-        ST[i] = NULL;
-    }
-}
-
-void SymbolTable::begin()
 {
     offset = 0;
     for (int i = 0; i < BUCKETS; i++)
@@ -88,17 +106,6 @@ void SymbolTable::begin()
             tmp = tmp -> next;
         }
     }
-}*/
-
-/*SymbolTable::SymbolTable(int set)
-{
-    offset = set;
-    for (int i = 0; i < BUCKETS; i++)
-    {
-        std::cout << i << " " ;
-        ST[i] = NULL;
-    }
-    std::cout << std::endl;
 }*/
 
 int SymbolTable::get_offset()
@@ -200,4 +207,21 @@ void SymbolTable::show_st()
         }
     }
 }
+
+/*std::stack<STable*> SymbolTable::search_type(int sign)
+{
+    std::stack<STable*> t;
+    for (int i = 0; i < BUCKETS; i++)
+    {
+        STable* tmp = ST[i];
+        while (tmp != NULL)
+        {
+            if (tmp -> sign == sign)
+            {
+                t.push(tmp);
+            }
+            tmp = tmp -> next;
+        }
+    }
+}*/
 #endif

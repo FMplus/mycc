@@ -2,6 +2,10 @@
 #include "signtable.h"
 #include <sstream>
 
+
+
+const std::string LABEL_NAME_PREFIX = "._L_";
+
 std::string parser::transdef(int l)
 {
     switch(l)
@@ -60,16 +64,17 @@ int parser::getc()
 }
 int parser::do_parse()
 {
+    static int label_id = 3;
+    int l1,l2,l3;
     std::stack<int> status;
     std::stack<string> products;
     std::stack<node> nodelist;
-    std::stack<string> strlist;
-    SymbolTable table;table.begin();
-    node nodetmp;
-    node nodetmp1,nodetmp2,nodetmp3,nodetmp4;
+    SymbolTable table;
+    node nodetmp,nodetmp1,nodetmp2,nodetmp3,nodetmp4;
     std::stringstream ss;
     string str,str1,str2,str3;
     int arraysize = 0;
+
     int sym,top;
     status.push(0);//push the start status
     products.push("\0");//push the end symbols
@@ -89,17 +94,21 @@ int parser::do_parse()
         }
         case REDUCE:{
         int l;
-        std::cout << "case: " << cctab[top][sym][1] << std::endl;
+        //std::cout << "case: " << cctab[top][sym][1] << std::endl;
         switch(cctab[top][sym][1]){
         case 0:{//accept
             std::cout << "accept!" << std::endl;
             nodetmp = nodelist.top();
-            std::cout << nodetmp.code << std::endl;
-            table.show_st();
+            std::cout << table.get_decl_code();
+            std::cout << ".text\n"
+                      << ".globl main\n"
+                      << "main:\n"
+                      << nodetmp.code;
+
             return 0;
             break;
         }
-        case 1:{//program=>BASIC id LBT RBT block
+        case 1:{//program=>BASIC ID LBT RBT block            //main   id -> ID
             nodetmp1 = nodelist.top();nodelist.pop();
             products.pop();status.pop();//block
             products.pop();status.pop();
@@ -108,7 +117,6 @@ int parser::do_parse()
             products.pop();status.pop();//id
             products.pop();status.pop();//BASIC
             nodetmp.code = nodetmp2.code + nodetmp1.code;
-            nodetmp.isID = false;nodetmp.isNUM = true;nodetmp.isREG = false;nodetmp.isREGID = false;
             nodelist.push(nodetmp);
             l = 2 ;
             break;
@@ -121,7 +129,6 @@ int parser::do_parse()
             products.pop();status.pop();//decls
             products.pop();status.pop();//LB
             nodetmp.code = nodetmp2.code + nodetmp1.code;
-            nodetmp.isID = true;nodetmp.isNUM = false;nodetmp.isREG = false;nodetmp.isREGID = false;
             nodelist.push(nodetmp);
             l = 3 ;
             break;
@@ -132,14 +139,12 @@ int parser::do_parse()
             nodetmp2 = nodelist.top();nodelist.pop();
             products.pop();status.pop();//decls
             nodetmp.code = nodetmp2.code + nodetmp1.code;
-            nodetmp.isID = true;nodetmp.isNUM = false;nodetmp.isREG = false;nodetmp.isREGID = false;
             nodelist.push(nodetmp);
             l = 4 ;
             break;
         }
         case 4:{//decls=>%
             nodetmp.code = "";
-            nodetmp.isID = false;nodetmp.isNUM = false;nodetmp.isREG = false;nodetmp.isREGID = false;
             nodelist.push(nodetmp);
             l = 4 ;
             break;
@@ -152,13 +157,14 @@ int parser::do_parse()
             break;
         }
         case 6:{//id=>volua COMMA id
+
+
             nodetmp1 = nodelist.top();nodelist.pop();
             products.pop();status.pop();//id
             products.pop();status.pop();//comma
             nodetmp2 = nodelist.top();nodelist.pop();
             products.pop();status.pop();//volua
             nodetmp.code = nodetmp2.code + nodetmp1.code;
-            nodetmp.isID = true;nodetmp.isNUM = false;nodetmp.isREG = false;nodetmp.isREGID = false;
             nodelist.push(nodetmp);
             l = 6 ;
             break;
@@ -170,8 +176,8 @@ int parser::do_parse()
         }
         case 8:{//volua=>ID
             table.insert_s(products.top(),0,"int",1);
-            nodetmp.code = "";nodetmp.res = products.top();
-            nodetmp.isID = true;nodetmp.isNUM = false; nodetmp.isREG = false;nodetmp.isREGID = false;
+            nodetmp.res = products.top();
+            nodetmp.code = "";
             products.pop();status.pop();//ID
             nodelist.push(nodetmp);
             l = 11 ;
@@ -184,8 +190,8 @@ int parser::do_parse()
             products.pop();status.pop();//LSB
             table.insert_s(products.top(),1,"int",arraysize);//array
             arraysize = 0;
-            nodetmp.code = "";nodetmp.res = products.top();
-            nodetmp.isID = true;nodetmp.isNUM = false; nodetmp.isREG = false;nodetmp.isREGID = false;
+            nodetmp.res = products.top();
+            nodetmp.code = "";
             products.pop();status.pop();//ID
             nodelist.push(nodetmp);
             l = 11 ;
@@ -193,7 +199,7 @@ int parser::do_parse()
         }
         case 10:{//volua=>ID LSB NUM RSB EQUAL LB expr RB
             products.pop();status.pop();//RB
-            //nodetmp1 = nodelist.top();
+            //nodetmp1 = nodelist.top();nodelist.pop();
             products.pop();status.pop();//expr
             products.pop();status.pop();//LB
             products.pop();status.pop();//=
@@ -204,7 +210,7 @@ int parser::do_parse()
             str1 = products.top();
             table.insert_s(str1,1,"int",arraysize);//array
             products.pop();status.pop();//ID
-            str = "";
+            str =  "movl $" + str1 + ",%eax\n";
             for (int i = 0; i < arraysize; i++)
             {
                 nodetmp = nodelist.top();
@@ -214,18 +220,16 @@ int parser::do_parse()
                     ss << (arraysize - i - 1)*sizeof(int);
                     ss >> str3;
                     ss.clear();
-                    str2 = "mov  ["+ str1 + "+" + str3 + "] , " + nodetmp.res + "\n\0";
+                    str += "movl  $" + nodetmp.res +"," + str3 + "(%eax)\n";
                 }
                 else
                 {
-                    std::cout << "error:array error,not have enough value!" << std::endl;
+                    std::cout << "error 10: array error,not have enough value!" << std::endl;
                     exit(1);
                 }
-                str = str2 + str;
             }
             arraysize = 0;
             nodetmp.code = str;
-            nodetmp.isID = true;nodetmp.isNUM = false;nodetmp.isREG = false;nodetmp.isREGID = false;
             nodelist.push(nodetmp);
             l = 11 ;
             break;
@@ -236,8 +240,8 @@ int parser::do_parse()
             products.pop();status.pop();//=
             nodetmp2.res = products.top();
             products.pop();status.pop();//ID
-            nodetmp.code = "mov  ["+ nodetmp2.res + "] , "+ nodetmp1.res +"\n\0";
-            nodetmp2.isID = true;nodetmp2.isNUM = false;nodetmp2.isREG = false;nodetmp2.isREGID= false;
+            nodetmp.code = "movl  $" + nodetmp2.res + ",%eax\n"
+                         + "movl  $" + nodetmp1.res + ",(%eax)\n";
             nodelist.push(nodetmp);
             table.insert_s(nodetmp2.res,0,"int",1);
             l = 11 ;
@@ -249,14 +253,12 @@ int parser::do_parse()
             nodetmp2 = nodelist.top();nodelist.pop();
             products.pop();status.pop();
             nodetmp.code = nodetmp2.code + nodetmp1.code;
-            nodetmp.isID = true;nodetmp.isNUM = false;nodetmp.isREG = false;nodetmp.isREGID = false;
             nodelist.push(nodetmp);
             l = 7 ;
             break;
         }
         case 13:{//stmts=>%
             nodetmp.code = "";
-            nodetmp.isID = false;nodetmp.isNUM = false;nodetmp.isREG = false;nodetmp.isREGID = false;
             nodelist.push(nodetmp);
             l = 7 ;
             break;
@@ -268,61 +270,154 @@ int parser::do_parse()
             break;
         }
         case 15:{//stmt=>IF LBT equality RBT stmt
-            products.pop();status.pop();
-            products.pop();status.pop();
-            products.pop();status.pop();
-            products.pop();status.pop();
-            products.pop();status.pop();
+            nodetmp1 = nodelist.top();nodelist.pop();
+            products.pop();status.pop();//stmt
+            products.pop();status.pop();//)
+            nodetmp2 = nodelist.top();nodelist.pop();
+            products.pop();status.pop();//equality
+            products.pop();status.pop();//(
+            products.pop();status.pop();//IF
+            l1 = label_id ++;
+            l2 = label_id ++;
+            ss << l1;ss >> str1;ss.clear();
+            ss << l2;ss >> str2;ss.clear();
+            nodetmp.code =    nodetmp2.code
+                            + LABEL_NAME_PREFIX + str1 + ":\n"
+                            + "cmp $0,%eax\n"
+                            + "jz " + LABEL_NAME_PREFIX + str2 + "\n"
+                            + nodetmp1.code
+                            + LABEL_NAME_PREFIX + str2 + ":\n";
+            nodelist.push(nodetmp);
             l = 8 ;
             break;
         }
-        case 16:{//stmt=>IF LBT equality RBT stmt ELSE stmt
-            products.pop();status.pop();
-            products.pop();status.pop();
-            products.pop();status.pop();
-            products.pop();status.pop();
-            products.pop();status.pop();
-            products.pop();status.pop();
-            products.pop();status.pop();
+        case 16:{//stmt=>IF LBT equality RBT stmt1 ELSE stmt2
+            nodetmp1 = nodelist.top();nodelist.pop();
+            products.pop();status.pop();//stmt2
+            products.pop();status.pop();//ELSE
+            nodetmp2 = nodelist.top();nodelist.pop();
+            products.pop();status.pop();//stmt1
+            products.pop();status.pop();//)
+            nodetmp3 = nodelist.top();nodelist.pop();
+            products.pop();status.pop();//equality
+            products.pop();status.pop();//(
+            products.pop();status.pop();//IF
+            l1 = label_id ++;
+            l2 = label_id ++;
+            ss << l1;ss >> str1;ss.clear();
+            ss << l2;ss >> str2;ss.clear();
+            nodetmp.code =    nodetmp3.code
+                            + "cmpl $0,%eax\n"
+                            + "jz " + LABEL_NAME_PREFIX + str1 + "\n"
+                            + nodetmp2.code  //if
+                            + "jmp " + LABEL_NAME_PREFIX + str2 + "\n"
+                            + LABEL_NAME_PREFIX + str1 + ":\n" //else
+                            + nodetmp1.code
+                            + LABEL_NAME_PREFIX + str2 + ":\n";
+            nodelist.push(nodetmp);
             l = 8 ;
             break;
         }
         case 17:{//stmt=>FOR LBT stmvol SEM expr SEM add RBT stmt
-            products.pop();status.pop();
-            products.pop();status.pop();
-            products.pop();status.pop();
-            products.pop();status.pop();
-            products.pop();status.pop();
-            products.pop();status.pop();
-            products.pop();status.pop();
-            products.pop();status.pop();
-            products.pop();status.pop();
+            nodetmp1 = nodelist.top();nodelist.pop();
+            products.pop();status.pop();//stmt
+            products.pop();status.pop();//)
+            nodetmp2 = nodelist.top();nodelist.pop();
+            products.pop();status.pop();//add
+            products.pop();status.pop();//;
+            nodetmp3 = nodelist.top();nodelist.pop();
+            products.pop();status.pop();//expr
+            products.pop();status.pop();//;
+            nodetmp4 = nodelist.top();nodelist.pop();
+            products.pop();status.pop();//stmvol
+            products.pop();status.pop();//(
+            products.pop();status.pop();//FOR
+
+            int ls,lend;
+            std::string strls,strlend;
+            l1 = label_id ++;
+            l2 = label_id ++;
+            ls = label_id ++;
+            l3 = label_id ++;
+            lend = label_id ++;
+            ss << l1;ss >> str1;ss.clear();
+            ss << l2;ss >> str2;ss.clear();
+            ss << ls;ss >> strls;ss.clear();
+            ss << l3;ss >> str3;ss.clear();
+            ss << lend;ss >> strlend;ss.clear();
+            nodetmp.code =    LABEL_NAME_PREFIX + str1 + ":\n"
+                            + nodetmp4.code
+                            + LABEL_NAME_PREFIX + str2 + ":\n"
+                            + nodetmp3.code
+                            + "cmpl $0,%eax\n"
+                            + "jz " + LABEL_NAME_PREFIX + strlend + "\n"
+                            + LABEL_NAME_PREFIX + strls + ":\n"
+                            + nodetmp1.code
+                            + LABEL_NAME_PREFIX + str3 + ":\n"
+                            + nodetmp2.code
+                            + "jmp " + LABEL_NAME_PREFIX + str2 + "\n"
+                            + LABEL_NAME_PREFIX + strlend + ":\n";
+
+            nodelist.push(nodetmp);
             l = 8 ;
             break;
         }
         case 18:{//stmt=>WHILE LBT equality RBT stmt
-            products.pop();status.pop();
-            products.pop();status.pop();
-            products.pop();status.pop();
-            products.pop();status.pop();
-            products.pop();status.pop();
+            nodetmp1 = nodelist.top();nodelist.pop();
+            products.pop();status.pop();//stmt
+            products.pop();status.pop();//)
+            nodetmp2 = nodelist.top();nodelist.pop();
+            products.pop();status.pop();//equality
+            products.pop();status.pop();//(
+            products.pop();status.pop();//WHILE
+
+            l1 = label_id ++;
+            l2 = label_id ++;
+            l3 = label_id ++;
+            ss << l1;ss >> str1;ss.clear();
+            ss << l2;ss >> str2;ss.clear();
+            ss << l3;ss >> str3;ss.clear();
+
+            str = LABEL_NAME_PREFIX + str1 + ":\n"
+                + nodetmp2.code
+                + "cmpl $0,%eax\n"
+                + "jz " + LABEL_NAME_PREFIX + str3 + "\n"
+                + LABEL_NAME_PREFIX + str2 + ":\n"
+                + nodetmp1.code
+                + "jmp " + LABEL_NAME_PREFIX + str1 + "\n"
+                + LABEL_NAME_PREFIX + str3 + ":\n";
+
+            nodetmp.code = str;
+            nodelist.push(nodetmp);
             l = 8 ;
             break;
         }
         case 19:{//stmt=>PRINTF LBT STR paramer RBT SEM
-            products.pop();status.pop();
-            products.pop();status.pop();
-            products.pop();status.pop();
-            products.pop();status.pop();
-            products.pop();status.pop();
-            products.pop();status.pop();
+            products.pop();status.pop();//;
+            products.pop();status.pop();//)
+            nodetmp1 = nodelist.top();nodelist.pop();
+            products.pop();status.pop();//paramer
+            nodetmp2.res = products.top();
+            products.pop();status.pop();//STR
+            products.pop();status.pop();//(
+            products.pop();status.pop();//PRINTF
+            l1 = label_id ++;
+            str = nodetmp1.code
+                + "pushl $ \"" + nodetmp2.res + "\" \n"
+                + "call printf\n";
+            nodetmp.code = str;
+            nodelist.push(nodetmp);
             l = 8 ;
             break;
         }
         case 20:{//stmt=>RETURN equality SEM
-            products.pop();status.pop();
-            products.pop();status.pop();
-            products.pop();status.pop();
+            products.pop();status.pop();//;
+            nodetmp1 = nodelist.top();nodelist.pop();
+            products.pop();status.pop();//equality
+            products.pop();status.pop();//RETURN
+            str = nodetmp1.code
+                + "leave \n"
+                + "ret\n";
             l = 8 ;
             break;
         }
@@ -332,15 +427,21 @@ int parser::do_parse()
             break;
         }
         case 22:{//paramer=>paramer COMMA add
+            nodetmp1 = nodelist.top();nodelist.pop();
             products.pop();status.pop();//add
             products.pop();status.pop();//,
-            products.pop();status.pop();//string
+            nodetmp2 = nodelist.top();nodelist.pop();
+            products.pop();status.pop();//add
+            str = nodetmp2.code
+                + nodetmp1.code
+                + "pushl %eax\n";
+            nodetmp.code = str;
+            nodelist.push(nodetmp);
             l = 20 ;
             break;
         }
         case 23:{//paramer=>%
             nodetmp.code = "";
-            nodetmp.isID = false;nodetmp.isNUM = false;nodetmp.isREG = false;nodetmp.isREGID = false;
             nodelist.push(nodetmp);
             l = 20 ;
             break;
@@ -351,24 +452,12 @@ int parser::do_parse()
             products.pop();status.pop();//=
             nodetmp2 = nodelist.top();nodelist.pop();
             products.pop();status.pop();//loc
-            str = nodetmp1.code;
-            if (nodetmp1.isNUM)//还没有判nodetmp2的类型
-            {
-                nodetmp.code = str + "mov  " + nodetmp2.res + " , " + nodetmp1.res + "\n\0";
-            }
-            else if (nodetmp1.isREG)
-            {
-                nodetmp.code = str + "mov  " + nodetmp2.res + " , " + nodetmp1.res + "\n\0";
-            }
-            else if (nodetmp1.isID)
-            {
-                nodetmp.code = str + "mov  " + nodetmp2.res + " , [" + nodetmp1.res + "] \n\0";
-            }
-            else if (nodetmp1.isREGID)
-            {
-                nodetmp.code = str + "mov  " + nodetmp2.res + " , [" + nodetmp1.res + "] \n\0";
-            }
-            nodetmp.isID = true;nodetmp.isNUM = false;nodetmp.isREG = false;nodetmp.isREGID = false;
+            str = nodetmp2.code
+                + "pushl %eax\n"
+                + nodetmp1.code
+                + "movl  %eax,(%esp)\n"
+                + "addl  $4,%esp\n";
+            nodetmp.code = str;
             nodelist.push(nodetmp);
             l = 12 ;
             break;
@@ -383,16 +472,17 @@ int parser::do_parse()
             nodetmp1 = nodelist.top();nodelist.pop();
             products.pop();status.pop();//add
             products.pop();status.pop();//[
-            nodetmp2.code = "";nodetmp2.res = products.top();
+            nodetmp2.res = products.top();
+            products.pop();status.pop();//ID
             if (table.find_s(nodetmp2.res) == false)
             {
-                std::cout << "error 26: not definie " + nodetmp2.res << std::endl;
+                std::cout << "error 26: not define " + nodetmp2.res << std::endl;
                 exit(1);
             }
-            nodetmp2.isID = true;nodetmp2.isNUM = false;nodetmp2.isREG = false;nodetmp2.isREGID = false;
-            products.pop();status.pop();//ID
-            nodetmp.res = "["+ nodetmp2.res + nodetmp1.res + "]";nodetmp.code = "";
-            nodetmp.isID = true;nodetmp.isNUM = false;nodetmp.isREG = false;nodetmp.isREGID = false;
+            nodetmp.code =    nodetmp1.code
+                            + "movl $" + nodetmp2.res + ",%ebx\n"
+                            + "addl %eax,%ebx\n"
+                            + "movl (%ebx),%eax\n";
             nodelist.push(nodetmp);
             l = 9 ;
             break;
@@ -401,21 +491,23 @@ int parser::do_parse()
             nodetmp.res = products.top();
             if (table.find_s(nodetmp.res) == false)
             {
-                std::cout << "error:not definie " + nodetmp.res << std::endl;
+                std::cout << "error 27: not define " + nodetmp.res << std::endl;
                 exit(1);
             }
-            nodetmp.code = "";
-            nodetmp.isID = true;nodetmp.isNUM = false;
-            nodetmp.isREG = false;nodetmp.isREGID = false;
+            nodetmp.code = "movl $" + nodetmp.res + ",%eax\n";
             products.pop();status.pop();
             nodelist.push(nodetmp);
             l = 9 ;
             break;
         }
         case 28:{//expr=>expr COMMA equality
+            //nodetmp1 = nodelist.top();nodelist.pop();
             products.pop();status.pop();//equality
-            products.pop();status.pop();
+            products.pop();status.pop();//,
+            //nodetmp2 = nodelist.top();nodelist.pop();
             products.pop();status.pop();//expr
+            //nodetmp.code = nodetmp2.code + nodetmp1.code;
+            //nodelist.push(nodetmp);
             l = 10 ;
             break;
         }
@@ -425,16 +517,38 @@ int parser::do_parse()
             break;
         }
         case 30:{//equality=>equality ASS rel
+            nodetmp1 = nodelist.top();nodelist.pop();
             products.pop();status.pop();//rel
             products.pop();status.pop();//==
+            nodetmp2 = nodelist.top();nodelist.pop();
             products.pop();status.pop();//equality
+            str = nodetmp2.code
+                + "pushl %eax\n"
+                + nodetmp1.code
+                + "cmpl %eax,(%esp)\n"
+                + "sete %al\n"
+                + "movzbl %al,%eax\n"
+                + "addl $4,%esp\n";
+            nodetmp.code = str;
+            nodelist.push(nodetmp);
             l = 13 ;
             break;
         }
         case 31:{//equality=>equality UEQUAL rel
-            products.pop();status.pop();
-            products.pop();status.pop();
-            products.pop();status.pop();
+            nodetmp1 = nodelist.top();nodelist.pop();
+            products.pop();status.pop();//rel
+            products.pop();status.pop();// !=
+            nodetmp2 = nodelist.top();nodelist.pop();
+            products.pop();status.pop();//equality
+            str = nodetmp2.code
+                + "pushl %eax\n"
+                + nodetmp1.code
+                + "cmpl %eax,(%esp)\n"
+                + "setne %al\n"
+                + "movzbl %al,%eax\n"
+                + "addl $4,%esp\n";
+            nodetmp.code = str;
+            nodelist.push(nodetmp);
             l = 13 ;
             break;
         }
@@ -444,30 +558,74 @@ int parser::do_parse()
             break;
         }
         case 33:{//rel=>add LT add
+            nodetmp1 = nodelist.top();nodelist.pop();
             products.pop();status.pop();
+            products.pop();status.pop();//<
+            nodetmp2 = nodelist.top();nodelist.pop();
             products.pop();status.pop();
-            products.pop();status.pop();
+            str = nodetmp2.code
+                + "pushl %eax\n"
+                + nodetmp1.code
+                + "cmpl %eax,(%esp)\n"
+                + "setl %al\n"
+                + "movzbl %al,%eax\n"
+                + "addl $4,%esp\n";
+            nodetmp.code = str;
+            nodelist.push(nodetmp);
             l = 14 ;
             break;
         }
-        case 34:{//rel=>add LE add
-            products.pop();status.pop();
-            products.pop();status.pop();
-            products.pop();status.pop();
+        case 34:{//rel=>add1 LE add2
+            nodetmp1 = nodelist.top();nodelist.pop();
+            products.pop();status.pop();//2
+            products.pop();status.pop();//<=
+            nodetmp2 = nodelist.top();nodelist.pop();
+            products.pop();status.pop();//1
+            str = nodetmp2.code
+                + "pushl %eax\n"
+                + nodetmp1.code
+                + "cmpl %eax,(%esp)\n"
+                + "setle %al\n"
+                + "movzbl %al,%eax\n"
+                + "addl $4,%esp\n";
+            nodetmp.code = str;
+            nodelist.push(nodetmp);
             l = 14 ;
             break;
         }
-        case 35:{//rel=>add GT add
-            products.pop();status.pop();
-            products.pop();status.pop();
-            products.pop();status.pop();
+        case 35:{//rel=>add2 GT add1
+            nodetmp1 = nodelist.top();nodelist.pop();
+            products.pop();status.pop();//1
+            products.pop();status.pop();//>
+            nodetmp2 = nodelist.top();nodelist.pop();
+            products.pop();status.pop();//2
+            str = nodetmp2.code
+                + "pushl %eax\n"
+                + nodetmp1.code
+                + "cmpl %eax,(%esp)\n"
+                + "setg %al\n"
+                + "movzbl %al,%eax\n"
+                + "addl $4,%esp\n";
+            nodetmp.code = str;
+            nodelist.push(nodetmp);
             l = 14 ;
             break;
         }
-        case 36:{//rel=>add GE add
-            products.pop();status.pop();
-            products.pop();status.pop();
-            products.pop();status.pop();
+        case 36:{//rel=>add2 GE add1
+            nodetmp1 = nodelist.top();nodelist.pop();
+            products.pop();status.pop();//add1
+            products.pop();status.pop();//>=
+            nodetmp2 = nodelist.top();nodelist.pop();
+            products.pop();status.pop();//add2
+            str = nodetmp2.code
+                + "pushl %eax\n"
+                + nodetmp1.code
+                + "cmpl %eax,(%esp)\n"
+                + "setge %al\n"
+                + "movzbl %al,%eax\n"
+                + "addl $4,%esp\n";
+            nodetmp.code = str;
+            nodelist.push(nodetmp);
             l = 14 ;
             break;
         }
@@ -477,16 +635,34 @@ int parser::do_parse()
             break;
         }
         case 38:{//add=>add PLUS mult
-            products.pop();status.pop();
-            products.pop();status.pop();
-            products.pop();status.pop();
+            nodetmp1 = nodelist.top();nodelist.pop();
+            products.pop();status.pop();//mult
+            products.pop();status.pop();//+
+            nodetmp2 = nodelist.top();nodelist.pop();
+            products.pop();status.pop();//add
+            str = nodetmp2.code
+                + "pushl %eax\n"
+                + nodetmp1.code
+                + "addl %eax,(%esp)\n"
+                + "addl $4,%esp\n";
+            nodetmp.code = str;
+            nodelist.push(nodetmp);
             l = 15 ;
             break;
         }
         case 39:{//add=>add MIN mult
-            products.pop();status.pop();
-            products.pop();status.pop();
-            products.pop();status.pop();
+            nodetmp1 = nodelist.top();nodelist.pop();
+            products.pop();status.pop();//mult
+            products.pop();status.pop();//-
+            nodetmp2 = nodelist.top();nodelist.pop();
+            products.pop();status.pop();//add
+            str = nodetmp2.code
+                + "pushl %eax\n"
+                + nodetmp1.code
+                + "subl %eax,(%esp)\n"
+                + "addl $4,%esp\n";
+            nodetmp.code = str;
+            nodelist.push(nodetmp);
             l = 15 ;
             break;
         }
@@ -496,9 +672,18 @@ int parser::do_parse()
             break;
         }
         case 41:{//mult=>mult MULT unary
-            products.pop();status.pop();
-            products.pop();status.pop();
-            products.pop();status.pop();
+            nodetmp1 = nodelist.top();nodelist.pop();
+            products.pop();status.pop();//unary
+            products.pop();status.pop();//*
+            nodetmp2 = nodelist.top();nodelist.pop();
+            products.pop();status.pop();//mult
+            str = nodetmp2.code
+                + "pushl %eax\n"
+                + nodetmp1.code
+                + "mull %eax,(%esp)\n"
+                + "addl $4,%esp\n";
+            nodetmp.code = str;
+            nodelist.push(nodetmp);
             l = 16 ;
             break;
         }
@@ -508,39 +693,12 @@ int parser::do_parse()
             products.pop();status.pop();
             nodetmp2 = nodelist.top();nodelist.pop();
             products.pop();status.pop();//mult
-            str = "";
-            if (nodetmp1.isID == true && nodetmp2.isID == true)
-            {
-                str1 = "mov  eax , [" + nodetmp2.res + "] \n\0";
-                str2 = "div  [" + nodetmp1.res + "] \n\0";
-                str = str1 + str2;
-                nodetmp.res = "eax";
-                nodetmp.isREG = true;nodetmp.isID = false;nodetmp.isNUM = false;nodetmp.isREGID = false;
-            }
-            else if (nodetmp1.isID == true && nodetmp2.isNUM == true)
-            {
-                str1 = "mov  eax , " + nodetmp2.res + " \n\0";
-                str2 = "div  [" + nodetmp1.res + "] \n\0";
-                str = str1 + str2;
-                nodetmp.res = "eax";
-                nodetmp.isREG = true;nodetmp.isID = false;nodetmp.isNUM = false;nodetmp.isREGID = false;
-            }
-            else if (nodetmp1.isNUM == true && nodetmp2.isID == true)
-            {
-                str1 = "mov  eax , [" + nodetmp2.res + "] \n\0";
-                str2 = "div  " + nodetmp1.res + " \n\0";
-                str = str1 + str2;
-                nodetmp.res = "eax";
-                nodetmp.isREG = true;nodetmp.isID = false;nodetmp.isNUM = false;nodetmp.isREGID = false;
-            }
-            else if (nodetmp1.isNUM == true && nodetmp2.isNUM == true)
-            {
-                str1 = "mov  eax , " + nodetmp2.res + " \n\0";
-                str2 = "div  " + nodetmp1.res + " \n\0";
-                str = str1 + str2;
-                nodetmp.res = "eax";
-                nodetmp.isREG = true;nodetmp.isID = false;nodetmp.isNUM = false;nodetmp.isREGID = false;
-            }
+            str =   nodetmp2.code
+                  + "pushl %eax\n"
+                  + nodetmp1.code
+                  + "divl %eax,(%esp)\n"
+                  + "addl $4,%esp\n";
+
             nodetmp.code = str;
             nodelist.push(nodetmp);
             l = 16 ;
@@ -552,8 +710,12 @@ int parser::do_parse()
             break;
         }
         case 44:{//unary=>EXCLAMA unary
+            nodetmp1 = nodelist.top();nodelist.pop();
+            products.pop();status.pop();//unary
             products.pop();status.pop();
-            products.pop();status.pop();
+            nodetmp.code = nodetmp1.code
+                         + "notl %eax\n";
+            nodelist.push(nodetmp);
             l = 17 ;
             break;
         }
@@ -566,7 +728,10 @@ int parser::do_parse()
             products.pop();status.pop();//inc
             nodetmp1 = nodelist.top();nodelist.pop();
             products.pop();status.pop();//postfix
-            nodetmp.code = "add  [" + nodetmp1.res + "] , 1 \n\0";
+            nodetmp.code = nodetmp1.code
+                         + "movl %eax,%ecx \n"
+                         + "incl %ecx \n"
+                         + "movl %ecx,(%ebx)\n";
             nodelist.push(nodetmp);
             l = 18 ;
             break;
@@ -575,7 +740,10 @@ int parser::do_parse()
             products.pop();status.pop();
             nodetmp1 = nodelist.top();nodelist.pop();
             products.pop();status.pop();
-            nodetmp.code = "sub  [" + nodetmp1.res + "] , 1 \n\0";
+            nodetmp.code = nodetmp1.code
+                         + "movl %eax,%ecx \n"
+                         + "decl %ecx \n"
+                         + "movl %ecx,(%ebx)\n";
             nodelist.push(nodetmp);
             l = 18 ;
             break;
@@ -600,8 +768,8 @@ int parser::do_parse()
         case 51:{//factor=>NUM
             nodetmp.code = "";
             nodetmp.res = products.top();
-            nodetmp.isID = false;nodetmp.isNUM = true;
-            nodetmp.isREG = false;nodetmp.isREGID = false;
+            nodetmp.code = "movl $" + nodetmp.res + ",%eax\n";
+            nodetmp.isNUM = true;
             nodelist.push(nodetmp);
             products.pop();status.pop();
             l = 19 ;
